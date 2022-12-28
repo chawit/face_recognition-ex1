@@ -1,0 +1,2 @@
+https://stackoverflow.com/questions/66624383/python-face-recognition-with-base64-encoded-image
+https://github.com/chawit/face_recognition-ex1

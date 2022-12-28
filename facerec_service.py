@@ -5,6 +5,8 @@ import face_recognition
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from werkzeug.exceptions import BadRequest
+import urllib.request as ur
+
 
 # Global storage for images
 faces_dict = {}
@@ -100,7 +102,54 @@ def web_recognize():
     else:
         raise BadRequest("Given file is invalid!")
 
+@app.route('/authen', methods=['POST'])
+def web_base64():
+    '''
+    if 'img' not in request.args:
+        raise BadRequest("Given img is invalid!")
+    '''
+    '''
+    if 'img' not in request.args:
+        raise BadRequest("Given img is invalid!")
+    '''
+    decoded= ur.urlopen(request.form.get('img'))
+    # Load the uploaded image file
+    img = face_recognition.load_image_file(decoded)
 
+    # Get face encodings for any faces in the uploaded image
+    uploaded_faces = face_recognition.face_encodings(img)
+
+    # Defaults for the result object
+    faces_found = len(uploaded_faces)
+    faces = []
+
+    if faces_found:
+        face_encodings = list(faces_dict.values())
+        for uploaded_face in uploaded_faces:
+            match_results = face_recognition.compare_faces(
+                face_encodings, uploaded_face)
+            for idx, match in enumerate(match_results):
+                if match:
+                    match = list(faces_dict.keys())[idx]
+                    match_encoding = face_encodings[idx]
+                    dist = face_recognition.face_distance([match_encoding],
+                            uploaded_face)[0]
+                    faces.append({
+                        "id": match,
+                        "dist": dist
+                    })
+
+    return jsonify(result=faces)
+
+    '''
+    file = extract_image(request)
+
+    if file and is_picture(file.filename):
+        # The image file seems valid! Detect faces and return the result.
+        return jsonify(detect_faces_in_image(file))
+    else:
+        raise BadRequest("Given file is invalid!")
+    '''
 @app.route('/faces', methods=['GET', 'POST', 'DELETE'])
 def web_faces():
     # GET
